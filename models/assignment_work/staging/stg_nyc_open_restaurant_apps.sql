@@ -1,8 +1,3 @@
--- Quick test to verify Open Restaurant source connection works
-SELECT
-    *
-FROM {{ source('raw', 'source_nyc_open_restaurant_apps_v2') }}
-LIMIT 
 
 -- Staging model for NYC Open Restaurant Applications (v2)
 
