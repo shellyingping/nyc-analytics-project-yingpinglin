@@ -1,32 +1,36 @@
--- Fact table: one row per 311 DOT request
-
 WITH base AS (
     SELECT *
     FROM {{ ref('stg_nyc_311_dot') }}
 ),
 
-with_keys AS (
-    SELECT
-        request_id,
+date_dim AS (
+    SELECT *
+    FROM {{ ref('dim_date') }}
+),
 
-        -- Date key
-        FORMAT_DATE('%Y%m%d', DATE(created_date)) AS date_key,
-
-        -- Location key (
-        TO_HEX(MD5(CONCAT(COALESCE(borough, ''), '|', COALESCE(incident_zip, '')))) AS location_key,
-
-        complaint_type,
-        descriptor,
-        status,
-        agency,
-        agency_name,
-        method_of_submission,
-        created_date,
-        closed_date,
-        _stg_loaded_at
-
-    FROM base
+location_dim AS (
+    SELECT *
+    FROM {{ ref('dim_location') }}
 )
 
-SELECT *
-FROM with_keys
+SELECT
+    b.request_id,
+    d.date_key,
+    l.location_key,
+
+    b.complaint_type,
+    b.descriptor,
+    b.status,
+    b.agency,
+    b.agency_name,
+    b.method_of_submission,
+    b.created_date,
+    b.closed_date,
+    b._stg_loaded_at
+
+FROM base b
+LEFT JOIN date_dim d
+    ON DATE(b.created_date) = d.full_date
+
+LEFT JOIN location_dim l
+    ON b.borough = l.borough
