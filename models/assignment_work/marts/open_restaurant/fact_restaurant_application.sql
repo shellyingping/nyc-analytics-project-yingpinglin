@@ -1,5 +1,5 @@
 -- Fact table: Open Restaurant Applications
--- Grain: one row per application
+-- Grain: one row per record from stg_nyc_open_restaurant_apps
 
 WITH apps AS (
   SELECT *
@@ -7,12 +7,13 @@ WITH apps AS (
 )
 
 SELECT
-  -- Surrogate key
-  TO_HEX(MD5(TO_JSON_STRING(STRUCT(apps.*)))) AS restaurant_application_sk,
+  -- Deterministic surrogate key from the whole row (BigQuery-safe)
+  CAST(FARM_FINGERPRINT(TO_JSON_STRING(apps)) AS STRING) AS restaurant_application_sk,
 
-  
-  NULL AS date_key,
-  NULL AS location_key,
+
+
+  CAST(NULL AS STRING) AS date_key,
+  CAST(NULL AS STRING) AS location_key,
 
   apps.*
 FROM apps
